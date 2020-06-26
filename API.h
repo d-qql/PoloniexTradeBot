@@ -9,15 +9,20 @@
 #include <string>
 #include "hmac.hpp"
 #include <ctime>
+#include <fstream>
 using namespace std;
+
 static size_t write_data(char *ptr, size_t size, size_t nmemb, string* data);
 class PrivateMethods{
 private:
     string APIkey;
     string Secret;
+    string getSettings(string paramName, string filename = "config.settings");
     string doCommand(string command, string Secret, string APIkey);
-    string Sign(string command, string Secret, string APIkey);
+    string Sign(string command, string Secret);
 public:
+    string getAPIkey();
+    string getSecret();
     string returnBalances();
     string returnCompleteBalances();
     string returnDepositAddresses();
