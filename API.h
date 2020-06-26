@@ -21,6 +21,7 @@ private:
     string doCommand(string command, string Secret, string APIkey);
     string Sign(string command, string Secret);
 public:
+    PrivateMethods();
     string getAPIkey();
     string getSecret();
     string returnBalances();

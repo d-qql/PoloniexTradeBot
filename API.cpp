@@ -2,22 +2,55 @@
 // Created by d-qql on 25.06.2020.
 //
 #include "API.h"
-string PrivateMethods::getSettings(string paramName, string filename){
-    ifstream fin(filename); // открыли файл для чтения
-    string buf;
-    while(getline(fin, buf)){ // пока не достигнут конец файла класть очередную строку в переменную (s)
-        string compare = buf.substr(0, paramName.length());
-        cout<<compare;
-        if(compare==paramName){
-            return buf.erase(0, paramName.length());
-        }
-    }
-    return "";
 
+/**
+ * Функция получающая параметр из файла filename
+ * paramName - имя поля,
+ * Пример:  "APIkey="
+ * */
+string PrivateMethods::getSettings(string paramName, string filename){
+    try {
+        ifstream fin(filename); // открыли файл для чтения
+        if(!fin.is_open()) throw 10001;
+        string buf;
+        while (getline(fin, buf)) { // пока не достигнут конец файла класть очередную строку в переменную (s)
+            cout << buf << endl;
+            string compare = buf.substr(0, paramName.length());
+            cout << compare << endl;
+            if (compare == paramName) {
+                return buf.erase(0, paramName.length());
+            }
+        }
+        throw 10002;
+    }
+    catch (int i) {
+        if(i==10001) cout<<"Не удалось открыть файл настроек"<<endl;
+        if(i==10002) cout<<"Не удалось найти " + paramName + " в настройках"<<endl;
+    }
+    return NULL;
 }
 string PrivateMethods::getAPIkey() {
     return PrivateMethods::getSettings("APIkey=");
 }
+string PrivateMethods::getSecret() {
+    return PrivateMethods::getSettings("SecretCode=");
+}
+/**
+ * Конструктор, для подключения нескольких
+ * аккаунтов необходимо добавить уникальный
+ * АйДи для ключей и секретов в файл настроек
+ */
+PrivateMethods::PrivateMethods(){
+    APIkey=getAPIkey();
+    Secret=getSecret();
+};
+
+/**
+ * Функция "Писарь"
+ * При указании в CURLOPT_WRITEFUNCTION
+ * Получаемая cURL информация будет записана в
+ * объект, указанный ссылкой в CURLOPT_WRITEDATA
+ */
 static size_t write_data(char *ptr, size_t size, size_t nmemb, string* data){
     if (data){
         data->append(ptr, size*nmemb);
@@ -26,10 +59,23 @@ static size_t write_data(char *ptr, size_t size, size_t nmemb, string* data){
     else
         return 0;  // будет ошибка
 }
+/**
+ * Шифрование с помощью SHA512(HMAC)
+ * @param command - Комманда, по которой обращаемся к API
+ * @param Secret - Наш секретный ключ
+ * @return Возвращает зашифрованную приватным ключем комманду
+ */
 string PrivateMethods::Sign(string command, string Secret){
     string res = hmac::get_hmac(Secret, command,hmac::TypeHash::SHA512);
     return res;
 }
+/**
+ * Функция формирования POST-запроса на сервер биржи
+ * @param command -
+ * @param Secret
+ * @param APIkey
+ * @return
+ */
 string PrivateMethods::doCommand(string command, string Secret, string APIkey){
     CURL *curl_handle = curl_easy_init();
     string result;
@@ -55,5 +101,5 @@ string PrivateMethods::doCommand(string command, string Secret, string APIkey){
     return result;
 }
 string PrivateMethods::returnBalances() {
-    return doCommand("command=returnBalances&nonce=","300963b179f1cda60cf6efed0bc0bb4030b3fcb42ff45119372acbdb6cf595aff618b6950abfd97b382e099fa092bcd7ea400a10a4641935e5b9c1a086e23a0f", "GYSZM48J-17YQSS42-UMNC5YBJ-8XJ0WXV3");
+    return doCommand("command=returnBalances&nonce=",PrivateMethods::Secret, PrivateMethods::APIkey);
 }
