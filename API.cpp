@@ -107,8 +107,15 @@ string PrivateMethods::doCommand(string command, string Secret, string APIkey){
  * Далее идет описание паблик методов для взаимодействия с приватным API
  */
 
-string PrivateMethods::returnBalances() {
-    return doCommand("command=returnBalances&nonce=",PrivateMethods::Secret, PrivateMethods::APIkey);
+map<string, double> PrivateMethods::returnBalances() {
+    string answerStr = doCommand("command=returnBalances&nonce=",PrivateMethods::Secret, PrivateMethods::APIkey);
+    nlohmann::json answerJson = nlohmann::json::parse(answerStr);
+    map<string, double> balances;
+    for (auto& x : answerJson.items())
+    {
+        balances.insert({x.key(), x.value()});
+    }
+    return balances;
 }
 string PrivateMethods::returnCompleteBalances() {
     return doCommand("command=returnCompleteBalances&nonce=",PrivateMethods::Secret, PrivateMethods::APIkey);
