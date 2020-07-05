@@ -29,6 +29,9 @@ string PrivateMethods::getSettings(string paramName, string filename){
     }
     return NULL;
 }
+/**
+ * Методы, получающие APIkey и  Secret из конфига
+ */
 string PrivateMethods::getAPIkey() {
     return PrivateMethods::getSettings("APIkey=");
 }
@@ -71,18 +74,18 @@ string PrivateMethods::Sign(string command, string Secret){
 }
 /**
  * Функция формирования POST-запроса на сервер биржи
- * @param command -
- * @param Secret
+ * @param command - Комманда, по которой обращаемся к API
+ * @param Secret - Наш секретный ключ
  * @param APIkey
- * @return
+ * @return Возвращает ответ сервера по запросу в json формате
  */
 string PrivateMethods::doCommand(string command, string Secret, string APIkey){
     CURL *curl_handle = curl_easy_init();
     string result;
     if(curl_handle) {
         struct curl_slist *headers=NULL;
-        command += to_string(time(0)*1000);
-        string Sign = "Sign: "+ PrivateMethods::Sign(command, Secret);
+        command += to_string(time(0)*1000);                         //добавляем к команде целое число, которое должно возрастать
+        string Sign = "Sign: "+ PrivateMethods::Sign(command, Secret);        //подписываем комманду секретным ключем
         curl_easy_setopt(curl_handle, CURLOPT_URL, "https://poloniex.com/tradingApi");
         curl_easy_setopt(curl_handle, CURLOPT_POST, 1);
         curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDSIZE, command.length());
@@ -100,6 +103,39 @@ string PrivateMethods::doCommand(string command, string Secret, string APIkey){
     curl_easy_cleanup(curl_handle);
     return result;
 }
+/**
+ * Далее идет описание паблик методов для взаимодействия с приватным API
+ */
+
 string PrivateMethods::returnBalances() {
     return doCommand("command=returnBalances&nonce=",PrivateMethods::Secret, PrivateMethods::APIkey);
+}
+string PrivateMethods::returnCompleteBalances() {
+    return doCommand("command=returnCompleteBalances&nonce=",PrivateMethods::Secret, PrivateMethods::APIkey);
+}
+string PrivateMethods::returnDepositAddresses() {
+    return doCommand("command=returnDepositAddresses&nonce=",PrivateMethods::Secret, PrivateMethods::APIkey);
+}
+string PrivateMethods::generateNewAddress() {
+    return doCommand("command=generateNewAddress&nonce=",PrivateMethods::Secret, PrivateMethods::APIkey);
+}
+string PrivateMethods::returnDepositsWithdrawals(long long int start, long long int end) {      //start и end даты периода в UNIX формате
+    string command = "command=returnDepositsWithdrawals&start=" + to_string(start) + "&end=" + to_string(end) + "&nonce=";
+    return doCommand(command,PrivateMethods::Secret, PrivateMethods::APIkey);
+}
+string PrivateMethods::returnOpenOrders(pair<string, string> currencyPair) {
+    string command = "command=returnOpenOrders&currencyPair=" + currencyPair.first + "_" + currencyPair.second + "&nonce=";
+    return doCommand(command,PrivateMethods::Secret, PrivateMethods::APIkey);
+}
+string PrivateMethods::returnTradeHistory(pair<string, string> currencyPair) {
+    string command = "command=returnTradeHistorys&currencyPair=" + currencyPair.first + "_" + currencyPair.second + "&nonce=";
+    return doCommand(command,PrivateMethods::Secret, PrivateMethods::APIkey);
+}
+string PrivateMethods::returnOrderTrades(int orderNumber) {
+    string command = "command=returnOrderTrades&orderNumber=" + to_string(orderNumber) + "&nonce=";
+    return doCommand(command,PrivateMethods::Secret, PrivateMethods::APIkey);
+}
+string PrivateMethods::returnOrderStatus(int orderNumber) {
+    string command = "command=returnOrderStatus&orderNumber=" + to_string(orderNumber) + "&nonce=";
+    return doCommand(command,PrivateMethods::Secret, PrivateMethods::APIkey);
 }
