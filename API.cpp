@@ -83,6 +83,7 @@ string PrivateMethods::doCommand(string command, string Secret, string APIkey){
     CURL *curl_handle = curl_easy_init();
     string result;
     if(curl_handle) {
+
         struct curl_slist *headers=NULL;
         command += to_string(time(0)*1000);                         //добавляем к команде целое число, которое должно возрастать
         string Sign = "Sign: "+ PrivateMethods::Sign(command, Secret);        //подписываем комманду секретным ключем
@@ -119,10 +120,28 @@ map<string, double> PrivateMethods::returnBalances() {
     }
     return balances;
 }
-/*
-string PrivateMethods::returnCompleteBalances() {
-    return doCommand("command=returnCompleteBalances&nonce=",PrivateMethods::Secret, PrivateMethods::APIkey);
+
+map<string, PrivateMethods::completeBalances> PrivateMethods::returnCompleteBalances() {
+    string answerStr = doCommand("command=returnCompleteBalances&nonce=",PrivateMethods::Secret, PrivateMethods::APIkey);
+    cout<<answerStr<<endl;
+    nlohmann::json answerJson = nlohmann::json::parse(answerStr);
+    map<string, PrivateMethods::completeBalances> result;
+
+    for (auto& x : answerJson.items()){
+        PrivateMethods::completeBalances buf;
+        for (auto& y : x.value().items()){
+            char * ptrEnd;
+            y.key()=="available" ? buf.available = strtod(to_string(y.value()).c_str(), &ptrEnd) : buf.available;
+            ptrEnd=NULL;
+            y.key()=="onOrders" ? buf.onOrders = strtod(to_string(y.value()).c_str(), &ptrEnd) : buf.onOrders;
+            ptrEnd=NULL;
+            y.key()=="btcValue" ? buf.btcValue = strtod(to_string(y.value()).c_str(), &ptrEnd) : buf.btcValue;
+        }
+         result.insert({x.key(), buf});
+    }
+    return result;
 }
+/*
 string PrivateMethods::returnDepositAddresses() {
     return doCommand("command=returnDepositAddresses&nonce=",PrivateMethods::Secret, PrivateMethods::APIkey);
 }

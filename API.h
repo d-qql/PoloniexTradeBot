@@ -25,6 +25,8 @@ private:
     string doCommand(string command, string Secret, string APIkey);
     string Sign(string command, string Secret);
 
+
+public:
     struct completeBalances{
         double available;
         double onOrders;
@@ -156,7 +158,6 @@ private:
         string message;
         int64_t clientOrderId;
     };
-public:
     PrivateMethods();
     string getAPIkey();
     string getSecret();
