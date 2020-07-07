@@ -27,15 +27,22 @@ private:
 
 
 public:
+    PrivateMethods();
+    string getAPIkey();
+    string getSecret();
+    map<string, double> returnBalances();
     struct completeBalances{
         double available;
         double onOrders;
         double btcValue;
     };
+    map<string, completeBalances> returnCompleteBalances();
+    map<string, string> returnDepositAddresses();
     struct newAdress{
         bool success;
         string response;
     };
+    newAdress generateNewAddress(string currency);
     struct depositsWithdrawals{
         struct deposit {
             long long int depositNumber;
@@ -72,6 +79,7 @@ public:
         vector<withdrawal> withdrawals;
         vector<adjustment> adjustments;
     };
+    depositsWithdrawals returnDepositsWithdrawals(long long int start, long long int end);
     struct openOrders{
         long long int orderNumber;
         string type;
@@ -82,6 +90,8 @@ public:
         string date;
         bool margin;
     };
+    vector<openOrders> returnOpenOrders(pair<string, string> currencyPair);
+    multimap<pair<string, string>, openOrders> returnOpenOrders(string currencyPair);
     struct singleTradeHistory{
         long long int globalTradeID;
         long long int tradeID;
@@ -92,6 +102,7 @@ public:
         double total;
         long long int orderNumber;
     };
+    vector<singleTradeHistory> returnTradeHistory(pair<string, string> currencyPair);
     struct allTradeHistory{
         long long int globalTradeID;
         long long int tradeID;
@@ -104,6 +115,7 @@ public:
         string type;
         string category;
     };
+    multimap<pair<string, string>, allTradeHistory> returnTradeHistory(string currencyPair);
     struct orderTrades{
         long long int globalTradeID;
         long long int tradeID;
@@ -115,6 +127,7 @@ public:
         double fee;
         string date;
     };
+    vector<orderTrades> returnOrderTrades(int orderNumber);
     struct orderStatus{
         string status;
         double rate;
@@ -125,6 +138,7 @@ public:
         string type;
         double startingAmount;
     };
+    orderStatus returnOrderStatus(int orderNumber);
     struct buySellInfo{
         long long int orderNumber;
         struct resultingTrades{
@@ -141,47 +155,33 @@ public:
         double tokenFee;
         string tokenFeeCurrency;
     };
-    struct cancelOrderInfo{
-        bool success;
-        double amount;
-        string message;
-        int64_t clientOrderId;
-    };
-    struct cancelAllOrdersInfo{
-        bool success;
-        string message;
-        vector<long long int> orderNumbers;
-    };
-    struct moveOrderInfo{
-        bool success;
-        double amount;
-        string message;
-        int64_t clientOrderId;
-    };
-    PrivateMethods();
-    string getAPIkey();
-    string getSecret();
-    map<string, double> returnBalances();
-    map<string, completeBalances> returnCompleteBalances();
-    map<string, string> returnDepositAddresses();
-    newAdress generateNewAddress(string currency);
-    depositsWithdrawals returnDepositsWithdrawals(long long int start, long long int end);
-    vector<openOrders> returnOpenOrders(pair<string, string> currencyPair);
-    multimap<pair<string, string>, openOrders> returnOpenOrders(string currencyPair);
-    vector<singleTradeHistory> returnTradeHistory(pair<string, string> currencyPair);
-    multimap<pair<string, string>, allTradeHistory> returnTradeHistory(string currencyPair);
-    vector<orderTrades> returnOrderTrades(int orderNumber);
-    orderStatus returnOrderStatus(int orderNumber);
     buySellInfo buy(pair<string, string> currencyPair, double rate, double amount,
             bool fillOrKill = 0, bool immediateOrCancel = 0,
             bool postOnly = 0, int64_t clientOrderId = NULL);
     buySellInfo sell(pair<string, string> currencyPair, double rate, double amount,
                 bool fillOrKill = 0, bool immediateOrCancel = 0,
                 bool postOnly = 0, int64_t clientOrderId = NULL);
+    struct cancelOrderInfo{
+        bool success;
+        double amount;
+        string message;
+        int64_t clientOrderId;
+    };
     cancelOrderInfo cancelOrder(long long int orderNumber);
     cancelOrderInfo cancelOrder(int64_t clientOrderId);
+    struct cancelAllOrdersInfo{
+        bool success;
+        string message;
+        vector<long long int> orderNumbers;
+    };
     cancelAllOrdersInfo cancelAllOrders();
     cancelAllOrdersInfo cancelAllOrders(pair<string, string> currencyPair);
+    struct moveOrderInfo{
+        bool success;
+        double amount;
+        string message;
+        int64_t clientOrderId;
+    };
 
 
 };

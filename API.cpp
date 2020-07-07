@@ -8,6 +8,7 @@
  * paramName - имя поля,
  * Пример:  "APIkey="
  * */
+
 string PrivateMethods::getSettings(string paramName, string filename){
     try {
         ifstream fin(filename); // открыли файл для чтения
@@ -141,17 +142,54 @@ map<string, PrivateMethods::completeBalances> PrivateMethods::returnCompleteBala
     }
     return result;
 }
-/*
-string PrivateMethods::returnDepositAddresses() {
-    return doCommand("command=returnDepositAddresses&nonce=",PrivateMethods::Secret, PrivateMethods::APIkey);
+
+map<string, string> PrivateMethods::returnDepositAddresses() {
+    string answerStr = doCommand("command=returnDepositAddresses&nonce=",PrivateMethods::Secret, PrivateMethods::APIkey);
+    cout<<answerStr<<endl;
+    nlohmann::json answerJson = nlohmann::json::parse(answerStr);
+    map<string, string> result;
+    for(auto& x : answerJson.items()){
+        result.insert({x.key(), x.value()});
+    }
+    return result;
 }
-string PrivateMethods::generateNewAddress() {
-    return doCommand("command=generateNewAddress&nonce=",PrivateMethods::Secret, PrivateMethods::APIkey);
+
+PrivateMethods::newAdress PrivateMethods::generateNewAddress(string currency) {
+    string command = "command=generateNewAddress&currency="+currency+"&nonce=";
+    string answerStr =  doCommand(command, PrivateMethods::Secret, PrivateMethods::APIkey);
+    cout<<answerStr<<endl;
+    nlohmann::json answerJson = nlohmann::json::parse(answerStr);
+    newAdress result;
+    for(auto& x : answerJson.items()){
+       x.key()=="success" ? result.success = x.value() : result.success;
+       x.key()=="response" ? result.response = x.value() : result.response;
+    }
+    return result;
 }
-string PrivateMethods::returnDepositsWithdrawals(long long int start, long long int end) {      //start и end даты периода в UNIX формате
+
+PrivateMethods::depositsWithdrawals PrivateMethods::returnDepositsWithdrawals(long long int start, long long int end) {      //start и end даты периода в UNIX формате
     string command = "command=returnDepositsWithdrawals&start=" + to_string(start) + "&end=" + to_string(end) + "&nonce=";
-    return doCommand(command,PrivateMethods::Secret, PrivateMethods::APIkey);
+    string answerStr = doCommand(command,PrivateMethods::Secret, PrivateMethods::APIkey);
+    cout<<answerStr<<endl;
+    nlohmann::json answerJson = nlohmann::json::parse(answerStr);
+    depositsWithdrawals result;
+    for(auto& x : answerJson.items()) {
+        if(x.key()=="deposits"){
+            depositsWithdrawals::deposit buf;
+            for(auto& y : x.value().items()){
+                for(auto& z : y.value().items()){
+                    z.key()=="currency" ? buf.currency = z.value() : buf.currency;
+                    char * ptrEnd;
+                    //строкой ниже полный писос с переводом строки в число
+                    z.key()=="depositNumber" ? buf.depositNumber = strtol(to_string(z.value()), ptrEnd) : buf.depositNumber;
+                    z.key()=="address" ? buf.address = z.value() : buf.address;
+                    z.key()=="amount" ? buf.address = z.value() : buf.address;
+                }
+            }
+        }
+    }
 }
+/*
 string PrivateMethods::returnOpenOrders(pair<string, string> currencyPair) {
     string command = "command=returnOpenOrders&currencyPair=" + currencyPair.first + "_" + currencyPair.second + "&nonce=";
     return doCommand(command,PrivateMethods::Secret, PrivateMethods::APIkey);
