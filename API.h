@@ -13,6 +13,7 @@
 #include <vector>
 #include <map>
 #include "json.hpp"
+#include <cstdlib>
 using namespace std;
 
 static size_t write_data(char *ptr, size_t size, size_t nmemb, string* data);

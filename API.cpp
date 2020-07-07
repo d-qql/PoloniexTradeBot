@@ -109,14 +109,17 @@ string PrivateMethods::doCommand(string command, string Secret, string APIkey){
 
 map<string, double> PrivateMethods::returnBalances() {
     string answerStr = doCommand("command=returnBalances&nonce=",PrivateMethods::Secret, PrivateMethods::APIkey);
+    cout<<answerStr<<endl;
     nlohmann::json answerJson = nlohmann::json::parse(answerStr);
     map<string, double> balances;
     for (auto& x : answerJson.items())
     {
-        balances.insert({x.key(), x.value()});
+        char * ptrEnd;
+        balances.insert({x.key(), strtod(to_string(x.value()).c_str(), &ptrEnd)});
     }
     return balances;
 }
+/*
 string PrivateMethods::returnCompleteBalances() {
     return doCommand("command=returnCompleteBalances&nonce=",PrivateMethods::Secret, PrivateMethods::APIkey);
 }
@@ -146,3 +149,4 @@ string PrivateMethods::returnOrderStatus(int orderNumber) {
     string command = "command=returnOrderStatus&orderNumber=" + to_string(orderNumber) + "&nonce=";
     return doCommand(command,PrivateMethods::Secret, PrivateMethods::APIkey);
 }
+*/
